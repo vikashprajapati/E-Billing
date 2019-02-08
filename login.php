@@ -1,3 +1,5 @@
+<?php require_once('config.php') ?>
+<?php require_once( ROOT_PATH . '/controllers/registration_login.php') ?>
 <?php include_once('resources/views/header.php') ?>
     <title>Login</title>
 </head>
@@ -6,14 +8,17 @@
     <main class="flex flex-1 flex-col">
             <div class="Login-container bg-white w-1/4 m-auto px-4 py-5 rounded">
                 <h2 class="text-orange-dark text-center">Login</h2>
-                <form action="#" class="flex flex-col">
-                    <label class="my-2">Email</label>
-                    <input class="my-2 p-2 border rounded" type="email" name="email" placeholder="Enter your email...">
+                <form method = "post" action="login.php" class="flex flex-col">
+                    <label class="my-2">Username</label>
+                    <input class="my-2 p-2 border rounded" type="text" name="username" placeholder="Enter your username...">
                     <label class="my-2">Password</label>
                     <input class="my-2 p-2 border rounded" type="password" name="password" placeholder="Enter your password">
                     <div class="text-center">
-                        <button class="my-2 p-2 border rounded hover:bg-orange-dark hover:text-white" type="submit" value="submit">Login</button>
+                        <button class="my-2 p-2 border rounded hover:bg-orange-dark hover:text-white" type="submit" name="login_btn">Login</button>
                     </div>
+                    <p>
+                        Not yet a member? <a href="register.php">Sign up</a>
+                    </p>
                 </form>
             </div>
     </main>
