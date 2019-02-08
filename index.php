@@ -15,6 +15,7 @@
                 <?php foreach($bills as $bill): ?>
                     <div class="card min-h-20 my-5 bg-white rounded flex flex-1 flex-col p-4">
                         <div class="card-header ">
+                            <h2><a href = <?php echo "invoice.php?bill_id=".$bill['id']; ?>>Invoice</a></h2>
                             <h3 class="text-orange-dark py-2"> <a href="#"> <?php echo $bill['client_name'] ?></a><small class="text-grey-darkest font-light text-base float-right">issued-by:</small></h3>
                         </div>
                         <div class="card-content">

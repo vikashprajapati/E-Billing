@@ -1,10 +1,10 @@
+<?php require_once('config.php') ?>
+<?php require_once( ROOT_PATH . '/controllers/public_functions.php') ?>
 <?php 
-    if(!isset($_SESSION['user'])){
+    if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['Admin', 'User'])){
         header('location: index.php');
     }
 ?>
-<?php require_once('config.php') ?>
-<?php require_once( ROOT_PATH . '/controllers/public_functions.php') ?>
 
 <?php $products = getAllProducts(); ?>
 

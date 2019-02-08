@@ -1,3 +1,11 @@
+<?php require_once('config.php') ?>
+<?php require_once( ROOT_PATH . '/controllers/public_functions.php') ?>
+
+<?php 
+    $bill_id = $_GET['bill_id'];
+    $bill = getBillById($bill_id);
+?>
+
 <?php include_once('resources/views/header.php') ?>
     <title>Invoice</title>
 </head>

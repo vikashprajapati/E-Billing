@@ -1,6 +1,23 @@
 <?php 
 $errors = "";
 
+function getBillById($bill_id){
+    // use global $conn object in function
+	global $conn;
+	$sql = "SELECT * FROM bills where id = $bill_id LIMIT 1";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $bill = mysqli_fetch_assoc($result);
+        $bill['products'] = getBillProducts($bill['id']); 
+        $bill['user'] = getBillGeneratedBy($bill['user_id']);
+        
+        return $bill;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
 function getAllBills() {
 	// use global $conn object in function
 	global $conn;
@@ -40,8 +57,8 @@ function getLastMonthBills() {
         }
         return $final_bills;
     }else{
-        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
         exit();
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
     }
 }
 
@@ -131,14 +148,18 @@ function generateBill($request_values){
 
     $user_id = $_SESSION['user']['id'];
     $client_name = esc($request_values['client_name']);
-    $discount = 0;
+    $discount = esc($request_values['discount']);;
     $products_id = array();
 
     foreach($request_values['products_id'] as $product_id){
         array_push($products_id, $product_id);
     }
 
-	$sql = "INSERT INTO bills (discount, created_at, client_name, user_id) VALUES ('$discount', now(), '$client_name', $user_id)";
+    $amount = getAmount($products_id);
+
+    $amount = $amount*(1-($discount/100));
+
+	$sql = "INSERT INTO bills (discount, created_at, client_name, user_id, amount) VALUES ('$discount', now(), '$client_name', $user_id, $amount)";
     if(mysqli_query($conn, $sql)){
         $bill_id = mysqli_insert_id($conn);
 	    insertInBillProduct($bill_id, $products_id);
@@ -146,6 +167,22 @@ function generateBill($request_values){
         error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
         exit();
     }
+}
+
+function getAmount($products_id){
+    global $conn;
+    $amount = 0;
+    foreach($products_id as $product_id){
+        $sql = "Select price from products WHERE id = $product_id";
+        $result = mysqli_query($conn, $sql);
+        if($result){
+            $amount += mysqli_fetch_assoc($result)['price'];
+        }else{
+            error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+            exit();
+        }    
+    }
+    return $amount;
 }
 
 function insertInBillProduct($bill_id, $products_id){
@@ -159,6 +196,7 @@ function insertInBillProduct($bill_id, $products_id){
             exit();
         }    
     }
+    return $amount;
 }
 
 function getAllProducts(){
