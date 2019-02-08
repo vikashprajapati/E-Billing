@@ -10,7 +10,7 @@
                 <?php foreach(range(1,15) as $i): ?>
                     <div class="card min-h-20 my-5 bg-white rounded flex flex-1 flex-col p-4">
                         <div class="card-header ">
-                            <h3 class="text-orange-dark py-2"> <a href="#"> Customer-Name</a><small class="text-grey-darkest font-light text-base float-right">issued-by:</small></h3>
+                            <h3 class="text-orange-dark py-2"> <a href="/invoice.php"> Customer-Name</a><small class="text-grey-darkest font-light text-base float-right">issued-by:</small></h3>
                         </div>
                         <div class="card-content">
                             Lorem ipsum dolor sit amet consectetur, adipisicing elit.
