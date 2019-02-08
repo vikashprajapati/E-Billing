@@ -1,4 +1,6 @@
 <?php 
+$errors = "";
+
 function getAllBills() {
 	// use global $conn object in function
 	global $conn;
@@ -111,13 +113,31 @@ function getBillProducts($bill_id){
     }
 }
 
-function generateBill($products_id, $discount, $client_name){
-    if(isset($_SESSION['user'])){
-        $user_id = $_SESSION['user']['id'];
-    }else{
-        exit();
+if (isset($_POST['generate_bill_btn'])) {
+	generateBill($_POST);
+}
+
+function esc(String $value){
+	// bring the global db connect object into function
+	global $conn;
+	// remove empty space sorrounding string
+	$val = trim($value); 
+	$val = mysqli_real_escape_string($conn, $value);
+	return $val;
+}
+
+function generateBill($request_values){
+    global $conn, $errors;
+
+    $user_id = $_SESSION['user']['id'];
+    $client_name = esc($request_values['client_name']);
+    $discount = 0;
+    $products_id = array();
+
+    foreach($request_values['products_id'] as $product_id){
+        array_push($products_id, $product_id);
     }
-    global $conn;
+
 	$sql = "INSERT INTO bills (discount, created_at, client_name, user_id) VALUES ('$discount', now(), '$client_name', $user_id)";
     if(mysqli_query($conn, $sql)){
         $bill_id = mysqli_insert_id($conn);
@@ -133,12 +153,22 @@ function insertInBillProduct($bill_id, $products_id){
     foreach($products_id as $product_id){
         $sql = "INSERT INTO bill_product (bill_id, product_id) VALUES ($bill_id, $product_id)";
         if(mysqli_query($conn, $sql)){
-            return true;
+            continue;
         }else{
             error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
             exit();
         }    
     }
+}
+
+function getAllProducts(){
+	global $conn;
+	
+	$sql = "SELECT * FROM products";
+	$result = mysqli_query($conn, $sql);
+	$products = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+	return $products;
 }
 
 ?>

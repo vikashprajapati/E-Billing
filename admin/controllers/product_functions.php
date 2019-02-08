@@ -6,8 +6,7 @@ $product_price = 0;
 $featured_image = "";
 $errors = "";
 
-function getAllProducts()
-{
+function getAllProducts(){
 	global $conn;
 	
 	$sql = "SELECT * FROM products";
