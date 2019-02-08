@@ -5,5 +5,5 @@ mix.sass('resources/sass/main.sass', 'static/css/main.css')
     .tailwind()
     .browserSync({
         files: ['./**/*'],
-        proxy: 'localhost:8000'
+        proxy: 'web.test'
     });
