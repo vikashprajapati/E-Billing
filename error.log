@@ -1,0 +1,2 @@
+Subquery returns more than 1 row
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'LIMIT 1' at line 1
