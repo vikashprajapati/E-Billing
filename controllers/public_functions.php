@@ -96,12 +96,12 @@ function getBillProducts($product_id){
 
 function generateBill($products_id, $discount, $client_name){
     if(isset($_SESSION['user'])){
-        $userId = $_SESSION['user']['id'];
+        $user_id = $_SESSION['user']['id'];
     }else{
         exit();
     }
     global $conn;
-	$sql = "INSERT INTO bills (discount, client_name, user_id) VALUES ('$discount', '$client_name', '$userId')";
+	$sql = "INSERT INTO bills (discount, created_at, client_name, user_id) VALUES ('$discount', now(), '$client_name', $user_id)";
     if(mysqli_query($conn, $sql)){
         $bill_id = mysqli_insert_id($conn);
 	    insertInBillProduct($bill_id, $products_id);
@@ -112,8 +112,15 @@ function generateBill($products_id, $discount, $client_name){
 }
 
 function insertInBillProduct($bill_id, $products_id){
+    global $conn;
     foreach($products_id as $product_id){
-
+        $sql = "INSERT INTO bill_product (bill_id, product_id) VALUES ($bill_id, $product_id)";
+        if(mysqli_query($conn, $sql)){
+            return true;
+        }else{
+            error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+            exit();
+        }    
     }
 }
 
