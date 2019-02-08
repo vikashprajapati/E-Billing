@@ -9,7 +9,8 @@ function getAllBills() {
 
         $final_bills = array();
         foreach ($bills as $bill) {
-            $bill['products'] = getBillProdcuts($bill['id']); 
+            $bill['products'] = getBillProducts($bill['id']); 
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
             array_push($final_bills, $bill);
         }
         return $final_bills;
@@ -31,7 +32,8 @@ function getLastMonthBills() {
 
         $final_bills = array();
         foreach ($bills as $bill) {
-            $bill['products'] = getBillProdcuts($bill['id']); 
+            $bill['products'] = getBillProducts($bill['id']); 
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
             array_push($final_bills, $bill);
         }
         return $final_bills;
@@ -41,7 +43,7 @@ function getLastMonthBills() {
     }
 }
 
-function getCurrentDayBillingRecord() {
+function getCurrentDayBills() {
 	// use global $conn object in function
 	global $conn;
 	$sql = "SELECT * FROM bills WHERE date(created_at) = CURRENT_DATE";
@@ -51,13 +53,14 @@ function getCurrentDayBillingRecord() {
 
         $final_bills = array();
         foreach ($bills as $bill) {
-            $bill['products'] = getBillProdcuts($bill['id']); 
+            $bill['products'] = getBillProducts($bill['id']); 
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
             array_push($final_bills, $bill);
         }
         return $final_bills;
     }else{
         error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
-        exit();
+        return NULL;
     }
 }
 
@@ -70,7 +73,8 @@ function getBillsByClient($client_name) {
 
         $final_bills = array();
         foreach ($bills as $bill) {
-            $bill['products'] = getBillProdcuts($bill['id']); 
+            $bill['products'] = getBillProducts($bill['id']);
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
             array_push($final_bills, $bill);
         }
         return $final_bills;
@@ -80,10 +84,23 @@ function getBillsByClient($client_name) {
     }
 }
 
-function getBillProducts($product_id){
+function getBillGeneratedBy($user_id){
+    global $conn;
+	$sql = "SELECT * FROM users WHERE id = $user_id LIMIT 1";
+	$result = mysqli_query($conn, $sql);
+    if($result){
+        $user = mysqli_fetch_assoc($result);
+	    return $user;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getBillProducts($bill_id){
 	global $conn;
-	$sql = "SELECT * FROM products WHERE id=
-			(SELECT product_id FROM bill_product WHERE product_id=$product_id)";
+	$sql = "SELECT * FROM products WHERE id IN
+			(SELECT product_id FROM bill_product WHERE bill_id=$bill_id)";
 	$result = mysqli_query($conn, $sql);
     if($result){
         $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
