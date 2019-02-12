@@ -1,6 +1,27 @@
 <?php 
 $errors = "";
 
+function getBillsByName($client_name){
+    // use global $conn object in function
+	global $conn;
+	$sql = "SELECT * FROM bills where client_name = '$client_name'";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $bills = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $final_bills = array();
+        foreach ($bills as $bill) {
+            $bill['products'] = getBillProducts($bill['id']); 
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
+            array_push($final_bills, $bill);
+        }
+        return $final_bills;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
 function getBillById($bill_id){
     // use global $conn object in function
 	global $conn;
@@ -39,16 +60,15 @@ function getAllBills() {
     }
 }
 
-function getLastMonthBills() {
+function getLastWeekBills() {
 	// use global $conn object in function
 	global $conn;
-	$sql = "SELECT * FROM table
-            WHERE YEAR(created_at) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)
-            AND MONTH(created_at) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH)";
+	$sql = "SELECT * FROM products
+            WHERE created_at >= curdate() - INTERVAL DAYOFWEEK(curdate())+6 DAY
+            AND created_at < curdate() - INTERVAL DAYOFWEEK(curdate())-1 DAY";
     $result = mysqli_query($conn, $sql);
     if($result){
         $bills = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
         $final_bills = array();
         foreach ($bills as $bill) {
             $bill['products'] = getBillProducts($bill['id']); 
@@ -57,8 +77,30 @@ function getLastMonthBills() {
         }
         return $final_bills;
     }else{
-        exit();
         error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getLastMonthBills() {
+	// use global $conn object in function
+	global $conn;
+	$sql = "SELECT * FROM bills
+            WHERE YEAR(created_at) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)
+            AND MONTH(created_at) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH)";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $bills = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $final_bills = array();
+        foreach ($bills as $bill) {
+            $bill['products'] = getBillProducts($bill['id']); 
+            $bill['user'] = getBillGeneratedBy($bill['user_id']);
+            array_push($final_bills, $bill);
+        }
+        return $final_bills;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
     }
 }
 
@@ -162,7 +204,8 @@ function generateBill($request_values){
 	$sql = "INSERT INTO bills (discount, created_at, client_name, user_id, amount) VALUES ('$discount', now(), '$client_name', $user_id, $amount)";
     if(mysqli_query($conn, $sql)){
         $bill_id = mysqli_insert_id($conn);
-	    insertInBillProduct($bill_id, $products_id);
+        insertInBillProduct($bill_id, $products_id);
+        header('location: ' . BASE_URL . 'invoice.php?bill_id='.$bill_id);
     }else{
         error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
         exit();
@@ -207,6 +250,102 @@ function getAllProducts(){
 	$products = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 	return $products;
+}
+
+function getProductById($product_id){
+    // use global $conn object in function
+	global $conn;
+	$sql = "SELECT * FROM products where id = $product_id LIMIT 1";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $product = mysqli_fetch_assoc($result);
+        
+        return $product;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getAllProductsCount() {
+	// use global $conn object in function
+	global $conn;
+	$sql = "SELECT product_id, count(product_id)  as c from bill_product GROUP BY product_id";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $final_products = array();
+        foreach ($products as $product) {
+            $product['product'] = getProductById($product['id']); 
+            array_push($final_products, $product);
+        }
+        return $final_products;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getLastWeekProducts() {
+	// use global $conn object in function
+	global $conn;
+	$sql = "SELECT product_id, count(product_id)  as c from bill_product where bill_id in (SELECT id FROM bills
+            WHERE created_at >= curdate() - INTERVAL DAYOFWEEK(curdate())+6 DAY
+            AND created_at < curdate() - INTERVAL DAYOFWEEK(curdate())-1 DAY GROUP BY product_id";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $final_products = array();
+        foreach ($products as $product) {
+            $product['product'] = getProductById($product['id']); 
+            array_push($final_products, $product);
+        }
+        return $final_products;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getLastMonthProducts() {
+	// use global $conn object in function
+	global $conn;
+	$sql = "SELECT product_id, count(product_id) as c from bill_product where bill_id in (SELECT id FROM bills
+            WHERE YEAR(created_at) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)
+            AND MONTH(created_at) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH)) GROUP BY product_id";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $final_products = array();
+        foreach ($products as $product) {
+            $product['product'] = getProductById($product['id']); 
+            array_push($final_products, $product);
+        }
+        return $final_products;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
+}
+
+function getCurrentDayProducts() {
+	// use global $conn object in function
+	global $conn;
+	$sql = "SELECT product_id, count(product_id) as c from bill_product where bill_id in (SELECT id FROM bills
+            WHERE date(created_at) = CURRENT_DATE) GROUP BY product_id";
+    $result = mysqli_query($conn, $sql);
+    if($result){
+        $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $final_products = array();
+        foreach ($products as $product) {
+            $product['product'] = getProductById($product['product_id']); 
+            array_push($final_products, $product);
+        }
+        return $final_products;
+    }else{
+        error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+        exit();
+    }
 }
 
 ?>

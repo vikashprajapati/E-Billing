@@ -104,7 +104,11 @@ function createAdmin($request_values){
 		$password = md5($password);//encrypt the password before saving in the database
 		$query = "INSERT INTO users (username, email, role, password, created_at, updated_at) 
 				  VALUES('$username', '$email', '$role', '$password', now(), now())";
-		mysqli_query($conn, $query);
+		if(mysqli_query($conn, $query)){
+			
+		}else{
+			error_log(mysqli_error($conn) . "\n", 3, ROOT_PATH.'/error.log');
+		}
 
 		$_SESSION['message'] = "Admin user created successfully";
 		header('location: users.php');
@@ -166,7 +170,7 @@ function deleteAdmin($admin_id) {
 	$sql = "DELETE FROM users WHERE id=$admin_id";
 	if (mysqli_query($conn, $sql)) {
 		$_SESSION['message'] = "User successfully deleted";
-		header("location: users.php");
+		header("location: dashboard.php");
 		exit(0);
 	}
 }
